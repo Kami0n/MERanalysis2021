@@ -20,7 +20,8 @@ def main():
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     VA = ['valence', 'arousal']
     regressionType = "NN"
-    selectionType = "reliefF"
+    #selectionType = "reliefF"
+    selectionType = "corelation"
     seed = 0
     
     subfolder = 'Dataset/'
@@ -45,6 +46,7 @@ def main():
             else:
                 indexesFeatures = 199
                 
+                
             print()
             print(regressionType+" "+selectVA+" "+str(indexesFeatures))
             
@@ -68,7 +70,7 @@ def main():
             results = [MSE, MAE, R2, EVS, MXE, indexesFeatures, selectVA]
             writer.writerow(results)
             
-            #joblib.dump(model, "./models/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+".joblib") # save model
+            model.save('model_NN_'+selectionType+'_'+str(indexesFeatures)+'_'+selectVA)
         
         if(indexesFeatures == 5):
             indexesFeatures+=5

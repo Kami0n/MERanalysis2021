@@ -19,15 +19,17 @@ from sklearn.metrics import max_error
 def main():
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     VA = ['valence', 'arousal']
-    #regressionType = "RF"
-    regressionType = "SVR"
-    selectionType = "reliefF"
+    regressionType = "RF"
+    
+    #regressionType = "SVR"
+    #selectionType = "reliefF"
+    selectionType = "corelation"
     seed = 0
     
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
     
-    f = open('results/'+regressionType+'_results.csv', 'w')
+    f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
     writer = csv.writer(f)
     writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE', 'noFeat', 'VA'])
     
@@ -55,7 +57,8 @@ def main():
             results.append(selectVA)
             writer.writerow(results)
             
-            joblib.dump(model, "./models/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+".joblib") # save model
+            
+            joblib.dump(model, "./models/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
             
         
         if(indexesFeatures == 5):
