@@ -16,12 +16,16 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
 
 
+
 def main():
+    kFold = False
+    results = False
+    
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     VA = ['valence', 'arousal']
     regressionType = "RF"
-    
     #regressionType = "SVR"
+    
     #selectionType = "reliefF"
     selectionType = "corelation"
     seed = 0
@@ -29,10 +33,10 @@ def main():
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
     
-    f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
-    writer = csv.writer(f)
-    writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE', 'noFeat', 'VA'])
-    
+    if results:
+        f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
+        writer = csv.writer(f)
+        writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE', 'noFeat', 'VA'])
     
     while indexesFeatures < 100:
         for selectVA in VA:
@@ -52,20 +56,28 @@ def main():
             print()
             print(regressionType+" "+selectVA+" "+str(indexesFeatures))
             
-            model, results = trainModelKfold(X_train, y_train_norm, regressionType, seed)
-            results.append(indexesFeatures)
-            results.append(selectVA)
-            writer.writerow(results)
             
+            if kFold:
+                model, results = trainModelKfold(X_train, y_train_norm, regressionType, seed)
+                if results:
+                    results.append(indexesFeatures)
+                    results.append(selectVA)
+                    writer.writerow(results)
+            else:
+                if(regressionType=="RF"):
+                    model = RForest(X_train, y_train, seed)
+                elif(regressionType=="SVR"):
+                    model = SVRegression(X_train, y_train, seed)
+                
+            joblib.dump(model, "./models/FULL/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
             
-            joblib.dump(model, "./models/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
-            
-        
         if(indexesFeatures == 5):
             indexesFeatures+=5
         else:
             indexesFeatures+=10
-    f.close()
+    
+    if results:
+        f.close()
 
 
 def trainModelKfold(X, y, typeReg, seed):
@@ -88,8 +100,8 @@ def trainModelKfold(X, y, typeReg, seed):
             regrModel = RForest(X_train, y_train, seed)
         elif(typeReg=="SVR"):
             regrModel = SVRegression(X_train, y_train, seed)
-        elif(typeReg=="NN"):
-            regrModel = NNRegression(X_train, X_test, y_train, y_test, True)
+        #elif(typeReg=="NN"):
+        #    regrModel = NNRegression(X_train, X_test, y_train, y_test, True)
         
         predictions = regrModel.predict(X_test)
         MSE = mean_squared_error(y_test, predictions)

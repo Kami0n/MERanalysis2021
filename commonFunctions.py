@@ -25,42 +25,42 @@ def musicFeatureExtraction(filePath):
     
     chroma = librosa.feature.chroma_stft(y=y, sr=sr) # returns: Normalized energy for each chroma bin at each frame.
     chroma_averaged = np.mean(chroma.T,axis=0)
-    print("Chroma", len(chroma_averaged))
+    #print("Chroma", len(chroma_averaged))
     
     melspectrogram = librosa.feature.melspectrogram(y=y, sr=sr) # returns: Mel spectrogram
     melspectrogram_averaged = np.mean(melspectrogram.T,axis=0)
-    print("melspectrogram", len(melspectrogram_averaged))
+    #print("melspectrogram", len(melspectrogram_averaged))
     
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40) # returns: MFCC sequence
     mfccs_averaged = np.mean(mfcc.T,axis=0)
-    print("mfcc", len(mfccs_averaged))
+    #print("mfcc", len(mfccs_averaged))
     
     spectral_contrast = librosa.feature.spectral_contrast(y=y, sr=sr)  # returns: each row of spectral contrast values corresponds to a given octave-based frequency
     spectral_contrast_averaged = np.mean(spectral_contrast.T,axis=0)
-    print("spectral_contrast", len(spectral_contrast_averaged))
+    #print("spectral_contrast", len(spectral_contrast_averaged))
     
     spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)  # returns: p’th-order spectral bandwidth.
     spectral_bandwidth_averaged = np.mean(spectral_bandwidth.T,axis=0)
-    print("spectral_bandwidth", len(spectral_bandwidth_averaged))
+    #print("spectral_bandwidth", len(spectral_bandwidth_averaged))
     
     spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)  # returns: roll-off frequency.
     spectral_rolloff_averaged = np.mean(spectral_rolloff.T,axis=0)
-    print("spectral_rolloff", len(spectral_rolloff_averaged))
+    #print("spectral_rolloff", len(spectral_rolloff_averaged))
     
     poly_features = librosa.feature.poly_features(y=y, sr=sr) # returns: coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
     poly_features_averaged = np.mean(poly_features.T,axis=0)
-    print("poly_features", len(poly_features_averaged))
+    #print("poly_features", len(poly_features_averaged))
     
     tonnetz = librosa.feature.tonnetz(y=y, sr=sr) # returns: Tonal centroid features for each frame.
     tonnetz_averaged = np.mean(tonnetz.T,axis=0)
-    print("tonnetz", len(tonnetz_averaged))
+    #print("tonnetz", len(tonnetz_averaged))
     
     zcr = librosa.feature.zero_crossing_rate(y=y)  # returns: zero-crossing rate of an audio time series.
     zcr_averaged = [np.mean(zcr)]
-    print("zcr", len(zcr_averaged))
+    #print("zcr", len(zcr_averaged))
     
     bpm = librosa.beat.tempo(y=y, sr=sr)  # returns: bpm
-    print("bpm", len(bpm))
+    #print("bpm", len(bpm))
     
     featureNumPy = mfccs_averaged
     featureNumPy = np.concatenate((featureNumPy,chroma_averaged))
