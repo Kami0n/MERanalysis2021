@@ -3,18 +3,16 @@ np.set_printoptions(suppress=True)
 import pandas as pd
 import joblib
 import csv
-
 from sklearn.model_selection import train_test_split
 from commonFunctions import normalizacija
-
 from sklearn.model_selection import KFold
-
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
-
+from sklearn.preprocessing import MinMaxScaler
+from pickle import dump
 
 
 def main():
@@ -26,12 +24,19 @@ def main():
     regressionType = "RF"
     #regressionType = "SVR"
     
-    #selectionType = "reliefF"
-    selectionType = "corelation"
+    selectionType = "reliefF"
+    #selectionType = "corelation"
+    
     seed = 0
     
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
+    X = np.array(featuresdf['features'].tolist())
+    scaler = MinMaxScaler()
+    scaler.fit(X)
+    dump(scaler, open('scaler.pkl', 'wb'))
+    
+    X = scaler.transform(X)
     
     if results:
         f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
@@ -40,7 +45,6 @@ def main():
     
     while indexesFeatures < 100:
         for selectVA in VA:
-            X = np.array(featuresdf['features'].tolist())
             y = np.array(featuresdf[selectVA].tolist())
             X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
             y_train_norm = normalizacija(y_train, 1, 1, 9)
@@ -52,10 +56,8 @@ def main():
                 X_train = X_train_filtered
             else:
                 indexesFeatures = 199
-                
-            print()
-            print(regressionType+" "+selectVA+" "+str(indexesFeatures))
             
+            print(regressionType+" "+selectVA+" "+str(indexesFeatures))
             
             if kFold:
                 model, results = trainModelKfold(X_train, y_train_norm, regressionType, seed)
@@ -65,12 +67,15 @@ def main():
                     writer.writerow(results)
             else:
                 if(regressionType=="RF"):
-                    model = RForest(X_train, y_train, seed)
+                    model = RForest(X_train, y_train_norm, seed)
                 elif(regressionType=="SVR"):
-                    model = SVRegression(X_train, y_train, seed)
-                
-            joblib.dump(model, "./models/FULL/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
+                    model = SVRegression(X_train, y_train_norm, seed)
             
+            if kFold:
+                joblib.dump(model, "./models/"+regressionType+"/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
+            else:
+                joblib.dump(model, "./models/FULL/model"+regressionType+"_"+selectVA+"_"+str(indexesFeatures)+"_"+selectionType+".joblib") # save model
+        
         if(indexesFeatures == 5):
             indexesFeatures+=5
         else:
@@ -87,7 +92,6 @@ def trainModelKfold(X, y, typeReg, seed):
     allEVS = []
     allMXE = []
     
-    
     kf = KFold(n_splits=10, shuffle = True, random_state = seed)
     best = None
     bestModel = None
@@ -100,8 +104,6 @@ def trainModelKfold(X, y, typeReg, seed):
             regrModel = RForest(X_train, y_train, seed)
         elif(typeReg=="SVR"):
             regrModel = SVRegression(X_train, y_train, seed)
-        #elif(typeReg=="NN"):
-        #    regrModel = NNRegression(X_train, X_test, y_train, y_test, True)
         
         predictions = regrModel.predict(X_test)
         MSE = mean_squared_error(y_test, predictions)
@@ -111,7 +113,7 @@ def trainModelKfold(X, y, typeReg, seed):
         allEVS.append(explained_variance_score(y_test, predictions))
         allMXE.append(max_error(y_test, predictions))
         
-        print('MSE:', round(MSE,5))
+        #print('MSE:', round(MSE,5))
         
         if(best == None or best > MSE):
             best = MSE
