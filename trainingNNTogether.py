@@ -1,34 +1,30 @@
 import numpy as np
 np.set_printoptions(suppress=True)
 import pandas as pd
-import joblib
 import csv
-
 from sklearn.model_selection import train_test_split
 from commonFunctions import normalizacija
-
 from sklearn.model_selection import KFold
-
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
 
+regressionType = "NN_both"
+#selectionType = "reliefF"
+selectionType = "corelation"
+seed = 0
 
 def main():
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
-    regressionType = "NN_both"
-    #selectionType = "reliefF"
-    selectionType = "corelation"
-    seed = 0
     
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
     
-    f = open('results/'+regressionType+'_results.csv', 'w')
+    f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
     writer = csv.writer(f)
-    writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE', 'noFeat', 'VA'])
+    writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE_valence', 'MXE_arousal', 'noFeat', 'VA'])
     
     while indexesFeatures < 100:
         X = np.array(featuresdf['features'].tolist())
@@ -52,10 +48,8 @@ def main():
             X_train = X_train_filtered
         else:
             indexesFeatures = 199
-            
-            
-        print()
-        print(regressionType+" "+str(indexesFeatures))
+        
+        print("\n"+regressionType+" "+str(indexesFeatures))
         
         # model, results = trainModelKfold(X_train, y_train_norm, seed)
         X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train, test_size = 0.2, random_state = seed) # remove items used for RReliefF
@@ -66,15 +60,17 @@ def main():
         MAE = np.round(mean_absolute_error(y_test, y_pred_best), 5)
         R2  = np.round(r2_score(y_test, y_pred_best), 5)
         EVS = np.round(explained_variance_score(y_test, y_pred_best), 5)
-        MXE = np.round(max_error(y_test, y_pred_best), 5)
+        MXE1 = np.round(max_error(y_test[0], y_pred_best[0]), 5)
+        MXE2 = np.round(max_error(y_test[1], y_pred_best[1]), 5)
         print()
         print('MSE:',MSE)
         print('MAE:',MAE)
         print('R2: ',R2 )
         print('EVS:',EVS)
-        print('MXE:',MXE)
+        print('MXE_valence:',MXE1)
+        print('MXE_arousal:',MXE2)
         
-        results = [MSE, MAE, R2, EVS, MXE, indexesFeatures]
+        results = [MSE, MAE, R2, EVS, MXE1, MXE2, indexesFeatures]
         writer.writerow(results)
         
         model.save('model_'+regressionType+'_'+selectionType+'_'+str(indexesFeatures))
@@ -84,7 +80,6 @@ def main():
         else:
             indexesFeatures+=10
     f.close()
-
 
 def trainModelKfold(X, y, seed):
     allMSE = []
@@ -144,7 +139,7 @@ def NNRegression(X_train, X_test, y_train, y_test, indexesFeatures, earlyStop=Fa
     # evaluate the keras model
     loss = model.evaluate(X_test, y_test)
     #print('Validation loss: %.2f' % (loss))
-    showLoss(history, indexesFeatures, )
+    showLoss(history, indexesFeatures)
     return model
 
 def buildModel(noFeatures):
@@ -255,7 +250,7 @@ def showLoss(history, indexesFeatures, show=False):
     if show:
         plt.show()
     else:
-        plt.savefig('results/plot/NN_both_'+str(indexesFeatures)+'_.png')
+        plt.savefig('results/plot/NN_both_'+str(indexesFeatures)+'_'+selectionType+'.png')
 
 if __name__ == '__main__':
     main()

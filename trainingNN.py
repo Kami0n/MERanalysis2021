@@ -1,20 +1,15 @@
 import numpy as np
 np.set_printoptions(suppress=True)
 import pandas as pd
-import joblib
 import csv
-
 from sklearn.model_selection import train_test_split
 from commonFunctions import normalizacija
-
 from sklearn.model_selection import KFold
-
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
-
 
 def main():
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
@@ -27,7 +22,7 @@ def main():
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
     
-    f = open('results/'+regressionType+'_results.csv', 'w')
+    f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
     writer = csv.writer(f)
     writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE', 'noFeat', 'VA'])
     
@@ -45,10 +40,8 @@ def main():
                 X_train = X_train_filtered
             else:
                 indexesFeatures = 199
-                
-                
-            print()
-            print(regressionType+" "+selectVA+" "+str(indexesFeatures))
+            
+            print("\n"+regressionType+" "+selectVA+" "+str(indexesFeatures))
             
             # model, results = trainModelKfold(X_train, y_train_norm, seed)
             X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train_norm, test_size = 0.2, random_state = seed) # remove items used for RReliefF
