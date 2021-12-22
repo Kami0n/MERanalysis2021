@@ -21,11 +21,12 @@ def main():
     
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     VA = ['valence', 'arousal']
-    regressionType = "RF"
-    #regressionType = "SVR"
+    #regressionType = "RF"
+    regressionType = "SVR"
     
     selectionType = "reliefF"
     #selectionType = "corelation"
+    
     
     seed = 0
     
