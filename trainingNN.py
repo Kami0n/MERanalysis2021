@@ -15,12 +15,18 @@ def main():
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     VA = ['valence', 'arousal']
     regressionType = "NN"
-    #selectionType = "reliefF"
-    selectionType = "corelation"
+    selectionType = "reliefF"
+    #selectionType = "corelation"
     seed = 0
+    
+    from pickle import load
+    scaler = load(open('scaler.pkl', 'rb'))
     
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
+    
+    X = np.array(featuresdf['features'].tolist())
+    X = scaler.transform(X)
     
     f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
     writer = csv.writer(f)
@@ -28,9 +34,11 @@ def main():
     
     while indexesFeatures < 100:
         for selectVA in VA:
-            X = np.array(featuresdf['features'].tolist())
+            
             y = np.array(featuresdf[selectVA].tolist())
-            X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+            X_train = X
+            y_train = y
+            #X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
             y_train_norm = normalizacija(y_train, 1, 1, 9)
             
             if(indexesFeatures <= 80):
@@ -44,7 +52,7 @@ def main():
             print("\n"+regressionType+" "+selectVA+" "+str(indexesFeatures))
             
             # model, results = trainModelKfold(X_train, y_train_norm, seed)
-            X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train_norm, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+            X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train_norm, test_size = 0.2, random_state = seed)
             model = NNRegression(X_train_NN, X_test, y_train_NN, y_test, selectVA, indexesFeatures, True)
             
             y_pred_best = model.predict(X_test)
@@ -63,7 +71,7 @@ def main():
             results = [MSE, MAE, R2, EVS, MXE, indexesFeatures, selectVA]
             writer.writerow(results)
             
-            model.save('model_NN_'+selectionType+'_'+str(indexesFeatures)+'_'+selectVA)
+            model.save('models/NN/model_NN_'+selectionType+'_'+str(indexesFeatures)+'_'+selectVA)
         
         if(indexesFeatures == 5):
             indexesFeatures+=5
@@ -242,8 +250,6 @@ def showLoss(history, selectVA, indexesFeatures, show=False):
         plt.show()
     else:
         plt.savefig('results/NNmodelLoss/'+str(indexesFeatures)+'_'+selectVA+'.png')
-
-
 
 if __name__ == '__main__':
     main()

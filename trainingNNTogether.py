@@ -10,13 +10,19 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import r2_score
 from sklearn.metrics import max_error
+from pickle import load
 
 regressionType = "NN_both"
-#selectionType = "reliefF"
-selectionType = "corelation"
+full = "FULL"
+
+selectionType = "reliefF"
+#selectionType = "corelation"
+
 seed = 0
 
 def main():
+    scaler = load(open('scaler.pkl', 'rb'))
+
     indexesFeatures = 5 # from 5 to 80 -> 90 is special for all features
     
     subfolder = 'Dataset/'
@@ -37,8 +43,11 @@ def main():
         y = np.array([y_valence, y_arousal])
         y = y.T
         
-        X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+        X = scaler.transform(X)
         
+        X_train = X
+        y_train = y
+        #X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
         
         if(indexesFeatures <= 80):
             selectVA = 'arousal'
@@ -52,7 +61,7 @@ def main():
         print("\n"+regressionType+" "+str(indexesFeatures))
         
         # model, results = trainModelKfold(X_train, y_train_norm, seed)
-        X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+        X_train_NN, X_test, y_train_NN, y_test = train_test_split(X_train,y_train, test_size = 0.2, random_state = seed)
         model = NNRegression(X_train_NN, X_test, y_train_NN, y_test, indexesFeatures, True)
         
         y_pred_best = model.predict(X_test)
@@ -73,7 +82,7 @@ def main():
         results = [MSE, MAE, R2, EVS, MXE_valence, MXE_arousal, indexesFeatures]
         writer.writerow(results)
         
-        model.save('model_'+regressionType+'_'+selectionType+'_'+str(indexesFeatures))
+        model.save('models/NNtogether/model_'+regressionType+'_'+selectionType+'_'+str(indexesFeatures)+'_all')
         
         if(indexesFeatures == 5):
             indexesFeatures+=5

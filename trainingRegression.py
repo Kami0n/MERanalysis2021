@@ -24,19 +24,20 @@ def main():
     #regressionType = "RF"
     regressionType = "SVR"
     
-    selectionType = "reliefF"
-    #selectionType = "corelation"
+    #selectionType = "reliefF"
     
+    selectionType = "corelation"
     
     seed = 0
     
     subfolder = 'Dataset/'
     featuresdf = pd.read_pickle(subfolder+'Pickle/199_exported_features_valence_arousal2021.pkl')
     X = np.array(featuresdf['features'].tolist())
-    scaler = MinMaxScaler()
-    scaler.fit(X)
-    dump(scaler, open('scaler.pkl', 'wb'))
-    
+    #scaler = MinMaxScaler()
+    #scaler.fit(X)
+    #dump(scaler, open('scaler.pkl', 'wb'))
+    from pickle import load
+    scaler = load(open('scaler.pkl', 'rb'))
     X = scaler.transform(X)
     
     if results:
@@ -47,7 +48,11 @@ def main():
     while indexesFeatures < 100:
         for selectVA in VA:
             y = np.array(featuresdf[selectVA].tolist())
-            X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+            
+            X_train = X
+            y_train = y
+            #X_train, X_features, y_train, y_features = train_test_split(X,y, test_size = 0.2, random_state = seed) # remove items used for RReliefF
+            
             y_train_norm = normalizacija(y_train, 1, 1, 9)
             
             if(indexesFeatures <= 80):
@@ -84,7 +89,6 @@ def main():
     
     if results:
         f.close()
-
 
 def trainModelKfold(X, y, typeReg, seed):
     allMSE = []
@@ -132,7 +136,6 @@ def trainModelKfold(X, y, typeReg, seed):
     print('EVS:',EVS)
     print('MXE:',MXE)
     return bestModel, [MSE, MAE, R2, EVS, MXE]
-
 
 def RForest(X_train, y_train, seed):
     from sklearn.ensemble import RandomForestRegressor
