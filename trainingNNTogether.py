@@ -24,7 +24,7 @@ def main():
     
     f = open('results/'+regressionType+'_'+selectionType+'_results.csv', 'w')
     writer = csv.writer(f)
-    writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE_valence', 'MXE_arousal', 'noFeat', 'VA'])
+    writer.writerow(['MSE', 'MAE', 'R2', 'EVS', 'MXE_valence', 'MXE_arousal', 'noFeat'])
     
     while indexesFeatures < 100:
         X = np.array(featuresdf['features'].tolist())
@@ -60,17 +60,17 @@ def main():
         MAE = np.round(mean_absolute_error(y_test, y_pred_best), 5)
         R2  = np.round(r2_score(y_test, y_pred_best), 5)
         EVS = np.round(explained_variance_score(y_test, y_pred_best), 5)
-        MXE1 = np.round(max_error(y_test[0], y_pred_best[0]), 5)
-        MXE2 = np.round(max_error(y_test[1], y_pred_best[1]), 5)
+        MXE_valence = np.round(max_error(y_test[0], y_pred_best[0]), 5)
+        MXE_arousal = np.round(max_error(y_test[1], y_pred_best[1]), 5)
         print()
         print('MSE:',MSE)
         print('MAE:',MAE)
         print('R2: ',R2 )
         print('EVS:',EVS)
-        print('MXE_valence:',MXE1)
-        print('MXE_arousal:',MXE2)
+        print('MXE_valence:',MXE_valence)
+        print('MXE_arousal:',MXE_arousal)
         
-        results = [MSE, MAE, R2, EVS, MXE1, MXE2, indexesFeatures]
+        results = [MSE, MAE, R2, EVS, MXE_valence, MXE_arousal, indexesFeatures]
         writer.writerow(results)
         
         model.save('model_'+regressionType+'_'+selectionType+'_'+str(indexesFeatures))
