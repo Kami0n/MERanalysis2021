@@ -250,7 +250,7 @@ def showLoss(history, indexesFeatures, show=False):
     if show:
         plt.show()
     else:
-        plt.savefig('results/plot/NN_both_'+str(indexesFeatures)+'_'+selectionType+'.png')
+        plt.savefig('results/NNmodelLoss/NN_both_'+str(indexesFeatures)+'_'+selectionType+'.png')
 
 if __name__ == '__main__':
     main()
